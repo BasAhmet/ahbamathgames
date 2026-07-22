@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çarpım Tablosu Hafıza Oyunu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Kartların 3D dönme efekti için basit CSS */
+        .perspective { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; transition: transform 0.5s; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .backface-hidden { backface-visibility: hidden; }
+    </style>
+</head>
+<body class="bg-sky-100 min-h-screen flex flex-col items-center py-10 font-sans text-gray-800 select-none">
+
+    <header class="mb-8 text-center">
+        <h1 class="text-4xl font-black text-sky-600 mb-2">Hafıza Kartları</h1>
+        <p class="text-lg font-bold text-gray-500">Eşleri Bul, Çarpım Tablosunu Fethet!</p>
+    </header>
+
+    <main class="flex-1 w-full max-w-3xl px-4 flex flex-col items-center">
+        
+        <!-- Oyun Izgarası -->
+        <div id="memoryGrid" class="grid grid-cols-3 md:grid-cols-4 gap-4 w-full perspective">
+            <!-- JS ile kartlar buraya basılacak -->
+        </div>
+
+        <!-- Oyun Sonu Ekranı (Başlangıçta Gizli) -->
+        <div id="winScreen" class="hidden flex-col items-center mt-12 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-black text-green-500 mb-6">Tebrikler! Hepsini Buldun!</h2>
+            
+            <!-- Süre veya otomatik geçiş yok, manuel yeni oyun butonu -->
+            <button onclick="initGame()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 text-xl">
+                🔄 Yeni Oyun
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // İleride sesleri buraya bağlayabilirsin
+         const correctSound = new Audio('sounds/correct.mp3');
+         const wrongSound = new Audio('sounds/wrong.mp3');
+
+        // Çarpım tablosu eşleştirmeleri
+        const multiplicationPairs = [
+            { id: 1, text: "4 x 5", type: "q" }, { id: 1, text: "20", type: "a" },
+            { id: 2, text: "6 x 7", type: "q" }, { id: 2, text: "42", type: "a" },
+            { id: 3, text: "8 x 8", type: "q" }, { id: 3, text: "64", type: "a" },
+            { id: 4, text: "9 x 3", type: "q" }, { id: 4, text: "27", type: "a" },
+            { id: 5, text: "7 x 5", type: "q" }, { id: 5, text: "35", type: "a" },
+            { id: 6, text: "6 x 6", type: "q" }, { id: 6, text: "36", type: "a" }
+        ];
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false; // Animasyon sırasında başka karta tıklamayı engeller
+
+        function initGame() {
+            const grid = document.getElementById('memoryGrid');
+            const winScreen = document.getElementById('winScreen');
+            
+            grid.innerHTML = '';
+            grid.classList.remove('hidden');
+            winScreen.classList.add('hidden');
+            
+            flippedCards = [];
+            matchedPairs = 0;
+            lockBoard = false;
+
+            // Kartları karıştır
+            cards = [...multiplicationPairs].sort(() => Math.random() - 0.5);
+
+            cards.forEach((card, index) => {
+                // Kart Konteyneri
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = "relative w-full aspect-[4/3] cursor-pointer transform-style-3d group";
+                cardWrapper.onclick = () => flipCard(cardWrapper, card);
+
+                // Kartın Arka Yüzü (Soru işareti veya desen olan kısım - CSS'te rotate edilmemiş hali)
+                const cardBack = document.createElement('div');
+                cardBack.className = "absolute w-full h-full bg-sky-500 rounded-2xl shadow-md flex items-center justify-center backface-hidden group-hover:bg-sky-400 transition-colors border-4 border-sky-600";
+                cardBack.innerHTML = `<span class="text-5xl text-white font-black opacity-50">?</span>`;
+
+                // Kartın Ön Yüzü (İşlem veya Cevap olan kısım - CSS'te baştan 180 derece döndürülmüş)
+                const cardFront = document.createElement('div');
+                cardFront.className = "absolute w-full h-full bg-white rounded-2xl shadow-md flex items-center justify-center backface-hidden rotate-y-180 border-4 border-sky-200";
+                
+                // İşlem mi cevap mı olduğuna göre metin rengini ayarlayalım
+                const textColor = card.type === 'q' ? 'text-gray-700' : 'text-sky-600';
+                cardFront.innerHTML = `<span class="${textColor} text-3xl md:text-4xl font-black">${card.text}</span>`;
+
+                cardWrapper.appendChild(cardBack);
+                cardWrapper.appendChild(cardFront);
+                grid.appendChild(cardWrapper);
+                
+                cardWrapper.dataset.index = index;
+                cardWrapper.dataset.id = card.id;
+            });
+        }
+
+        function flipCard(cardElement, cardData) {
+            if (lockBoard) return;
+            if (cardElement.classList.contains('rotate-y-180')) return; // Zaten açıksa tıklanmasın
+
+            cardElement.classList.add('rotate-y-180');
+            flippedCards.push({ element: cardElement, id: cardData.id });
+
+            if (flippedCards.length === 2) {
+                lockBoard = true;
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            let isMatch = flippedCards[0].id === flippedCards[1].id;
+
+            if (isMatch) {
+                // correctSound.play();
+                // Eşleşen kartları yeşil yapıp açık bırakalım
+                flippedCards.forEach(card => {
+                    const frontFace = card.element.children[1];
+                    frontFace.classList.remove('border-sky-200');
+                    frontFace.classList.add('border-green-400', 'bg-green-50');
+                });
+                
+                matchedPairs++;
+                flippedCards = [];
+                lockBoard = false;
+
+                if (matchedPairs === multiplicationPairs.length / 2) {
+                    setTimeout(showWinScreen, 500); // Son kart döndükten yarım saniye sonra bitiş ekranı
+                }
+            } else {
+                // wrongSound.play();
+                // Eşleşmediyse 1 saniye sonra kartları geri kapat
+                setTimeout(() => {
+                    flippedCards[0].element.classList.remove('rotate-y-180');
+                    flippedCards[1].element.classList.remove('rotate-y-180');
+                    flippedCards = [];
+                    lockBoard = false;
+                }, 1000);
+            }
+        }
+
+        function showWinScreen() {
+            document.getElementById('memoryGrid').classList.add('hidden');
+            document.getElementById('winScreen').classList.remove('hidden');
+            document.getElementById('winScreen').classList.add('flex');
+        }
+
+        // Oyunu başlat
+        initGame();
+    </script>
+</body>
+</html>
