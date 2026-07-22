@@ -11,6 +11,9 @@
     <!-- Üst Menü / Sınıf Seçimi -->
     <header class="bg-white shadow-md p-4 flex justify-between items-center rounded-b-3xl mb-6 mx-2">
         <h1 class="text-2xl font-black text-sky-600">Matematik Macerası</h1>
+        <button id="muteBtn" onclick="toggleMute()" class="text-2xl p-2 rounded-full hover:bg-sky-100 transition-colors">
+            🔊
+        </button>
         <select id="gradeSelect" class="bg-sky-50 border-2 border-sky-200 text-sky-700 rounded-xl p-2 font-bold outline-none cursor-pointer">
             <option value="1">1. Sınıf</option>
             <option value="2" disabled>2. Sınıf (Yakında)</option>
@@ -81,6 +84,27 @@
         let currentQuestionIndex = 0;
         let currentQuestions = [];
 
+        let isMuted = false;
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            
+            // Ses nesnelerini sustur veya aç
+            correctSound.muted = isMuted;
+            wrongSound.muted = isMuted;
+            
+            // Buton ikonunu değiştir
+            document.getElementById('muteBtn').innerText = isMuted ? "🔇" : "🔊";
+        }
+
+        // Ses nesnelerini oluştur (Dosya yollarını kendi projene göre ayarlayabilirsin)
+        const correctSound = new Audio('sounds/correct.mp3');
+        const wrongSound = new Audio('sounds/wrong.mp3');
+        
+        // Opsiyonel: Ses seviyelerini ayarlama (0.0 ile 1.0 arası)
+        correctSound.volume = 0.8;
+        wrongSound.volume = 0.5; // Hata sesi çocuğu korkutmasın diye biraz daha kısık olabilir
+
         // Oyunu Başlat
         function initGame() {
             currentQuestions = [...database[currentGrade]].sort(() => Math.random() - 0.5); // Soruları karıştır
@@ -130,23 +154,31 @@
                 document.getElementById('options').appendChild(btn);
             });
         }
-
+            
         function checkAnswer(selected, correct, btnElement) {
             const optionsDiv = document.getElementById('options');
             const resultArea = document.getElementById('resultArea');
             const feedbackText = document.getElementById('feedbackText');
-
+        
             optionsDiv.classList.add('hidden');
             resultArea.classList.remove('hidden');
             resultArea.classList.add('flex');
-
+        
             if (selected === correct) {
+                // Doğru sesini çal
+                correctSound.currentTime = 0; 
+                correctSound.play();
+                
                 combo++;
-                score += 10 * combo; // Seri yaptıkça puan katlanır
+                score += 10 * combo; 
                 feedbackText.innerText = "🎉 Harika! Doğru Bildin!";
                 feedbackText.className = "text-2xl font-black mb-4 text-green-500";
             } else {
-                combo = 0; // Hata yapınca seri sıfırlanır
+                // Yanlış sesini çal
+                wrongSound.currentTime = 0;
+                wrongSound.play();
+                
+                combo = 0; 
                 feedbackText.innerText = `😔 Doğru cevap ${correct} olacaktı.`;
                 feedbackText.className = "text-2xl font-black mb-4 text-red-500";
             }
