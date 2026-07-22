@@ -52,7 +52,13 @@
     </main>
 
     <script>
-        // Veritabanı: Toplam 12 Çift (Zor mod için tamamı, kolay mod için 6 tanesi çekilecek)
+        // Ses Dosyalarının Tanımlanması
+        const correctSound = new Audio('sounds/correct.mp3');
+        const wrongSound = new Audio('sounds/wrong.mp3');
+        correctSound.volume = 0.8;
+        wrongSound.volume = 0.5;
+        
+        // Veritabanı: Toplam 12 Çift
         const allMultiplicationPairs = [
             { id: 1, text: "4 x 5", type: "q" }, { id: 1, text: "20", type: "a" },
             { id: 2, text: "6 x 7", type: "q" }, { id: 2, text: "42", type: "a" },
@@ -67,14 +73,13 @@
             { id: 11, text: "3 x 7", type: "q" }, { id: 11, text: "21", type: "a" },
             { id: 12, text: "6 x 9", type: "q" }, { id: 12, text: "54", type: "a" }
         ];
-
+        
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
         let lockBoard = false;
         let activePairsCount = 6; 
-
-        // Başlangıç ekranını göster, diğerlerini gizle
+        
         function showStartScreen() {
             document.getElementById('startScreen').classList.remove('hidden');
             document.getElementById('startScreen').classList.add('flex');
@@ -82,69 +87,54 @@
             document.getElementById('winScreen').classList.add('hidden');
             document.getElementById('winScreen').classList.remove('flex');
         }
-
-        // Seviye seçildiğinde oyunu hazırlayıp başlat
+        
         function startGame(pairs) {
             activePairsCount = pairs;
-            
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('startScreen').classList.remove('flex');
-            
             initGame();
         }
-
+        
         function initGame() {
             const grid = document.getElementById('memoryGrid');
             grid.innerHTML = '';
             grid.classList.remove('hidden');
             
-            // Kart sayısına göre CSS Grid yapısını dinamik değiştiriyoruz
             if (activePairsCount === 12) {
-                // Zor mod: 24 kart -> mobilde 4 sütun, pc'de 6 sütun
                 grid.className = "grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-4 w-full perspective";
             } else {
-                // Kolay mod: 12 kart -> mobilde 3 sütun, pc'de 4 sütun
                 grid.className = "grid grid-cols-3 md:grid-cols-4 gap-4 w-full perspective";
             }
             
             flippedCards = [];
             matchedPairs = 0;
             lockBoard = false;
-
-            // 1. Tüm çiftleri grupla (Soru ve Cevap yan yana)
+        
             const pairGroups = [];
             for(let i = 0; i < allMultiplicationPairs.length; i += 2) {
                 pairGroups.push([allMultiplicationPairs[i], allMultiplicationPairs[i+1]]);
             }
-
-            // 2. Grupları rastgele karıştır
+        
             pairGroups.sort(() => Math.random() - 0.5);
-
-            // 3. İstenilen çift sayısı kadar (6 veya 12) grubu al
             const selectedGroups = pairGroups.slice(0, activePairsCount);
-
-            // 4. Grupları düz bir diziye çevir (flat) ve kartları tekrar karıştır
             cards = selectedGroups.flat().sort(() => Math.random() - 0.5);
-
-            // Kartları DOM'a bas
+        
             cards.forEach((card, index) => {
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = "relative w-full aspect-[4/3] cursor-pointer transform-style-3d group";
                 cardWrapper.onclick = () => flipCard(cardWrapper, card);
-
+        
                 const cardBack = document.createElement('div');
                 cardBack.className = "absolute w-full h-full bg-sky-500 rounded-xl md:rounded-2xl shadow-md flex items-center justify-center backface-hidden hover:bg-sky-400 transition-colors border-2 md:border-4 border-sky-600";
                 cardBack.innerHTML = `<span class="text-3xl md:text-5xl text-white font-black opacity-50">?</span>`;
-
+        
                 const cardFront = document.createElement('div');
                 cardFront.className = "absolute w-full h-full bg-white rounded-xl md:rounded-2xl shadow-md flex items-center justify-center backface-hidden rotate-y-180 border-2 md:border-4 border-sky-200";
                 
                 const textColor = card.type === 'q' ? 'text-gray-700' : 'text-sky-600';
-                
-                // Zor modda kartlar küçüleceği için metin boyutunu dinamik ayarlıyoruz
                 const textSize = activePairsCount === 12 ? 'text-xl md:text-3xl' : 'text-3xl md:text-4xl';
                 cardFront.innerHTML = `<span class="${textColor} ${textSize} font-black">${card.text}</span>`;
-
+        
                 cardWrapper.appendChild(cardBack);
                 cardWrapper.appendChild(cardFront);
                 grid.appendChild(cardWrapper);
@@ -152,24 +142,28 @@
                 cardWrapper.dataset.id = card.id;
             });
         }
-
+        
         function flipCard(cardElement, cardData) {
             if (lockBoard) return;
             if (cardElement.classList.contains('rotate-y-180')) return; 
-
+        
             cardElement.classList.add('rotate-y-180');
             flippedCards.push({ element: cardElement, id: cardData.id });
-
+        
             if (flippedCards.length === 2) {
                 lockBoard = true;
                 checkForMatch();
             }
         }
-
+        
         function checkForMatch() {
             let isMatch = flippedCards[0].id === flippedCards[1].id;
-
+        
             if (isMatch) {
+                // Eşleşme başarılı sesi
+                correctSound.currentTime = 0;
+                correctSound.play();
+        
                 flippedCards.forEach(card => {
                     const frontFace = card.element.children[1];
                     frontFace.classList.remove('border-sky-200');
@@ -179,11 +173,16 @@
                 matchedPairs++;
                 flippedCards = [];
                 lockBoard = false;
-
+        
                 if (matchedPairs === activePairsCount) {
+                    // Son kart eşleştiğinde de ufak bir kutlama hissi verir
                     setTimeout(showWinScreen, 500);
                 }
             } else {
+                // Eşleşme başarısız sesi
+                wrongSound.currentTime = 0;
+                wrongSound.play();
+        
                 setTimeout(() => {
                     flippedCards[0].element.classList.remove('rotate-y-180');
                     flippedCards[1].element.classList.remove('rotate-y-180');
@@ -192,13 +191,12 @@
                 }, 1000);
             }
         }
-
+        
         function showWinScreen() {
             document.getElementById('memoryGrid').classList.add('hidden');
             document.getElementById('winScreen').classList.remove('hidden');
             document.getElementById('winScreen').classList.add('flex');
         }
-
     </script>
 </body>
 </html>
