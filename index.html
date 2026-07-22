@@ -13,7 +13,7 @@
         <h1 class="text-2xl font-black text-sky-600">Matematik Macerası</h1>
         <select id="gradeSelect" class="bg-sky-50 border-2 border-sky-200 text-sky-700 rounded-xl p-2 font-bold outline-none cursor-pointer">
             <option value="1">1. Sınıf</option>
-            <option value="2" disabled>2. Sınıf (Yakında)</option>
+            <option value="2">2. Sınıf (Yakında)</option>
             <option value="3" disabled>3. Sınıf (Yakında)</option>
             <option value="4" disabled>4. Sınıf (Yakında)</option>
             <option value="5" disabled>5. Sınıf (Yakında)</option>
@@ -75,6 +75,13 @@
                 { q: "3 + 3", a: 6, options: [5, 6, 7, 8], icon: "⭐" },
                 { q: "5 + 2", a: 7, options: [6, 7, 8, 9], icon: "🎈" },
                 { q: "1 + 2", a: 3, options: [1, 2, 3, 4], icon: "🚗" }
+            ],
+            "2": [
+                { q: "15 + 7", a: 22, options: [21, 22, 23, 24], type: "text" },
+                { q: "24 - 8", a: 16, options: [14, 16, 18, 20], type: "text" },
+                { q: "? + 6 = 14", a: 8, options: [7, 8, 9, 10], type: "missing" },
+                { q: "20 - ? = 12", a: 8, options: [6, 8, 10, 12], type: "missing" },
+                { q: "18 + 15", a: 33, options: [31, 33, 35, 37], type: "text" }
             ]
         };
 
@@ -117,33 +124,47 @@
 
         function loadQuestion() {
             if (currentQuestionIndex >= currentQuestions.length) {
-                // Soru biterse başa sar veya yeni bir şey yap
                 currentQuestions = [...database[currentGrade]].sort(() => Math.random() - 0.5);
                 currentQuestionIndex = 0;
             }
-
+        
             const qData = currentQuestions[currentQuestionIndex];
             
-            // Arayüzü Sıfırla
             document.getElementById('resultArea').classList.add('hidden');
             document.getElementById('options').classList.remove('hidden');
             document.getElementById('options').innerHTML = '';
-
-            // Metin Sorusu
-            document.getElementById('textQuestion').innerText = `${qData.q} = ?`;
-
-            // Görsel Soru (1. Sınıflar için nesneleri çizdirme)
-            // Örn: "2 + 3" stringini parçalayıp yan yana emojileri basıyoruz
-            const parts = qData.q.split('+');
-            const num1 = parseInt(parts[0].trim());
-            const num2 = parseInt(parts[1].trim());
-            
-            let visualHTML = `<span class="tracking-widest">${qData.icon.repeat(num1)}</span>`;
-            visualHTML += `<span class="text-gray-300 font-bold">+</span>`;
-            visualHTML += `<span class="tracking-widest">${qData.icon.repeat(num2)}</span>`;
-            document.getElementById('visualQuestion').innerHTML = visualHTML;
-
-            // Şıkları Karıştırıp Ekrana Bas
+        
+            const textQuestionDiv = document.getElementById('textQuestion');
+            const visualQuestionDiv = document.getElementById('visualQuestion');
+        
+            // Sınıf seviyesine göre ekranı ayarla
+            if (currentGrade === "1") {
+                visualQuestionDiv.classList.remove('hidden');
+                const parts = qData.q.split('+');
+                const num1 = parseInt(parts[0].trim());
+                const num2 = parseInt(parts[1].trim());
+                
+                let visualHTML = `<span class="tracking-widest">${qData.icon.repeat(num1)}</span>`;
+                visualHTML += `<span class="text-gray-300 font-bold px-2">+</span>`;
+                visualHTML += `<span class="tracking-widest">${qData.icon.repeat(num2)}</span>`;
+                visualQuestionDiv.innerHTML = visualHTML;
+                
+                textQuestionDiv.innerText = `${qData.q} = ?`;
+            } else {
+                // 2. Sınıf ve sonrası için görselleri gizle, metni büyüt
+                visualQuestionDiv.classList.add('hidden');
+                
+                // Eğer verilmeyeni bulma sorusuysa "= ?" ekleme, doğrudan soruyu bas
+                if (qData.type === "missing") {
+                    textQuestionDiv.innerText = qData.q;
+                } else {
+                    textQuestionDiv.innerText = `${qData.q} = ?`;
+                }
+                
+                // Metni 2. sınıf için biraz daha devasa yapabiliriz
+                textQuestionDiv.className = "text-6xl font-black text-sky-700 mb-10";
+            }
+        
             const shuffledOptions = [...qData.options].sort(() => Math.random() - 0.5);
             
             shuffledOptions.forEach(opt => {
