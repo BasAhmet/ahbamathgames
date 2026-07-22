@@ -6,7 +6,6 @@
     <title>Çarpım Tablosu Hafıza Oyunu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Kartların 3D dönme efekti için basit CSS */
         .perspective { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; transition: transform 0.5s; }
         .rotate-y-180 { transform: rotateY(180deg); }
@@ -15,15 +14,28 @@
 </head>
 <body class="bg-sky-100 min-h-screen flex flex-col items-center py-10 font-sans text-gray-800 select-none">
 
-    <header class="mb-8 text-center">
-        <h1 class="text-4xl font-black text-sky-600 mb-2">Hafıza Kartları</h1>
+    <header class="mb-8 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-black text-sky-600 mb-2">Hafıza Kartları</h1>
         <p class="text-lg font-bold text-gray-500">Eşleri Bul, Çarpım Tablosunu Fethet!</p>
     </header>
 
-    <main class="flex-1 w-full max-w-3xl px-4 flex flex-col items-center">
+    <main class="flex-1 w-full max-w-4xl px-4 flex flex-col items-center">
         
-        <!-- Oyun Izgarası -->
-        <div id="memoryGrid" class="grid grid-cols-3 md:grid-cols-4 gap-4 w-full perspective">
+        <!-- Başlangıç Ekranı (Seviye Seçimi) -->
+        <div id="startScreen" class="flex flex-col items-center mt-12 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
+            <h2 class="text-2xl font-black text-gray-700 mb-8">Zorluk Seviyesi Seç</h2>
+            <div class="flex flex-col gap-4 w-full">
+                <button onclick="startGame(6)" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-5 rounded-2xl shadow-lg transition-transform active:scale-95 text-2xl flex items-center justify-center gap-2">
+                    😊 Kolay <span class="text-lg font-normal opacity-80">(6 Çift)</span>
+                </button>
+                <button onclick="startGame(12)" class="w-full bg-red-500 hover:bg-red-600 text-white font-black py-5 rounded-2xl shadow-lg transition-transform active:scale-95 text-2xl flex items-center justify-center gap-2">
+                    🔥 Zor <span class="text-lg font-normal opacity-80">(12 Çift)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Oyun Izgarası (Başlangıçta Gizli) -->
+        <div id="memoryGrid" class="hidden gap-4 w-full perspective">
             <!-- JS ile kartlar buraya basılacak -->
         </div>
 
@@ -32,80 +44,118 @@
             <div class="text-6xl mb-4">🏆</div>
             <h2 class="text-3xl font-black text-green-500 mb-6">Tebrikler! Hepsini Buldun!</h2>
             
-            <!-- Süre veya otomatik geçiş yok, manuel yeni oyun butonu -->
-            <button onclick="initGame()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 text-xl">
-                🔄 Yeni Oyun
+            <button onclick="showStartScreen()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 text-xl">
+                🔄 Seviye Seçimine Dön
             </button>
         </div>
 
     </main>
 
     <script>
-        // İleride sesleri buraya bağlayabilirsin
-         const correctSound = new Audio('sounds/correct.mp3');
-         const wrongSound = new Audio('sounds/wrong.mp3');
-
-        // Çarpım tablosu eşleştirmeleri
-        const multiplicationPairs = [
+        // Veritabanı: Toplam 12 Çift (Zor mod için tamamı, kolay mod için 6 tanesi çekilecek)
+        const allMultiplicationPairs = [
             { id: 1, text: "4 x 5", type: "q" }, { id: 1, text: "20", type: "a" },
             { id: 2, text: "6 x 7", type: "q" }, { id: 2, text: "42", type: "a" },
             { id: 3, text: "8 x 8", type: "q" }, { id: 3, text: "64", type: "a" },
             { id: 4, text: "9 x 3", type: "q" }, { id: 4, text: "27", type: "a" },
             { id: 5, text: "7 x 5", type: "q" }, { id: 5, text: "35", type: "a" },
-            { id: 6, text: "6 x 6", type: "q" }, { id: 6, text: "36", type: "a" }
+            { id: 6, text: "6 x 6", type: "q" }, { id: 6, text: "36", type: "a" },
+            { id: 7, text: "5 x 5", type: "q" }, { id: 7, text: "25", type: "a" },
+            { id: 8, text: "9 x 9", type: "q" }, { id: 8, text: "81", type: "a" },
+            { id: 9, text: "8 x 7", type: "q" }, { id: 9, text: "56", type: "a" },
+            { id: 10, text: "4 x 8", type: "q" }, { id: 10, text: "32", type: "a" },
+            { id: 11, text: "3 x 7", type: "q" }, { id: 11, text: "21", type: "a" },
+            { id: 12, text: "6 x 9", type: "q" }, { id: 12, text: "54", type: "a" }
         ];
 
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
-        let lockBoard = false; // Animasyon sırasında başka karta tıklamayı engeller
+        let lockBoard = false;
+        let activePairsCount = 6; 
+
+        // Başlangıç ekranını göster, diğerlerini gizle
+        function showStartScreen() {
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('startScreen').classList.add('flex');
+            document.getElementById('memoryGrid').classList.add('hidden');
+            document.getElementById('winScreen').classList.add('hidden');
+            document.getElementById('winScreen').classList.remove('flex');
+        }
+
+        // Seviye seçildiğinde oyunu hazırlayıp başlat
+        function startGame(pairs) {
+            activePairsCount = pairs;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('flex');
+            
+            initGame();
+        }
 
         function initGame() {
             const grid = document.getElementById('memoryGrid');
-            const winScreen = document.getElementById('winScreen');
-            
             grid.innerHTML = '';
             grid.classList.remove('hidden');
-            winScreen.classList.add('hidden');
+            
+            // Kart sayısına göre CSS Grid yapısını dinamik değiştiriyoruz
+            if (activePairsCount === 12) {
+                // Zor mod: 24 kart -> mobilde 4 sütun, pc'de 6 sütun
+                grid.className = "grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-4 w-full perspective";
+            } else {
+                // Kolay mod: 12 kart -> mobilde 3 sütun, pc'de 4 sütun
+                grid.className = "grid grid-cols-3 md:grid-cols-4 gap-4 w-full perspective";
+            }
             
             flippedCards = [];
             matchedPairs = 0;
             lockBoard = false;
 
-            // Kartları karıştır
-            cards = [...multiplicationPairs].sort(() => Math.random() - 0.5);
+            // 1. Tüm çiftleri grupla (Soru ve Cevap yan yana)
+            const pairGroups = [];
+            for(let i = 0; i < allMultiplicationPairs.length; i += 2) {
+                pairGroups.push([allMultiplicationPairs[i], allMultiplicationPairs[i+1]]);
+            }
 
+            // 2. Grupları rastgele karıştır
+            pairGroups.sort(() => Math.random() - 0.5);
+
+            // 3. İstenilen çift sayısı kadar (6 veya 12) grubu al
+            const selectedGroups = pairGroups.slice(0, activePairsCount);
+
+            // 4. Grupları düz bir diziye çevir (flat) ve kartları tekrar karıştır
+            cards = selectedGroups.flat().sort(() => Math.random() - 0.5);
+
+            // Kartları DOM'a bas
             cards.forEach((card, index) => {
-                // Kart Konteyneri
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = "relative w-full aspect-[4/3] cursor-pointer transform-style-3d group";
                 cardWrapper.onclick = () => flipCard(cardWrapper, card);
 
-                // Kartın Arka Yüzü (Soru işareti veya desen olan kısım - CSS'te rotate edilmemiş hali)
                 const cardBack = document.createElement('div');
-                cardBack.className = "absolute w-full h-full bg-sky-500 rounded-2xl shadow-md flex items-center justify-center backface-hidden group-hover:bg-sky-400 transition-colors border-4 border-sky-600";
-                cardBack.innerHTML = `<span class="text-5xl text-white font-black opacity-50">?</span>`;
+                cardBack.className = "absolute w-full h-full bg-sky-500 rounded-xl md:rounded-2xl shadow-md flex items-center justify-center backface-hidden hover:bg-sky-400 transition-colors border-2 md:border-4 border-sky-600";
+                cardBack.innerHTML = `<span class="text-3xl md:text-5xl text-white font-black opacity-50">?</span>`;
 
-                // Kartın Ön Yüzü (İşlem veya Cevap olan kısım - CSS'te baştan 180 derece döndürülmüş)
                 const cardFront = document.createElement('div');
-                cardFront.className = "absolute w-full h-full bg-white rounded-2xl shadow-md flex items-center justify-center backface-hidden rotate-y-180 border-4 border-sky-200";
+                cardFront.className = "absolute w-full h-full bg-white rounded-xl md:rounded-2xl shadow-md flex items-center justify-center backface-hidden rotate-y-180 border-2 md:border-4 border-sky-200";
                 
-                // İşlem mi cevap mı olduğuna göre metin rengini ayarlayalım
                 const textColor = card.type === 'q' ? 'text-gray-700' : 'text-sky-600';
-                cardFront.innerHTML = `<span class="${textColor} text-3xl md:text-4xl font-black">${card.text}</span>`;
+                
+                // Zor modda kartlar küçüleceği için metin boyutunu dinamik ayarlıyoruz
+                const textSize = activePairsCount === 12 ? 'text-xl md:text-3xl' : 'text-3xl md:text-4xl';
+                cardFront.innerHTML = `<span class="${textColor} ${textSize} font-black">${card.text}</span>`;
 
                 cardWrapper.appendChild(cardBack);
                 cardWrapper.appendChild(cardFront);
                 grid.appendChild(cardWrapper);
                 
-                cardWrapper.dataset.index = index;
                 cardWrapper.dataset.id = card.id;
             });
         }
 
         function flipCard(cardElement, cardData) {
             if (lockBoard) return;
-            if (cardElement.classList.contains('rotate-y-180')) return; // Zaten açıksa tıklanmasın
+            if (cardElement.classList.contains('rotate-y-180')) return; 
 
             cardElement.classList.add('rotate-y-180');
             flippedCards.push({ element: cardElement, id: cardData.id });
@@ -120,8 +170,6 @@
             let isMatch = flippedCards[0].id === flippedCards[1].id;
 
             if (isMatch) {
-                // correctSound.play();
-                // Eşleşen kartları yeşil yapıp açık bırakalım
                 flippedCards.forEach(card => {
                     const frontFace = card.element.children[1];
                     frontFace.classList.remove('border-sky-200');
@@ -132,12 +180,10 @@
                 flippedCards = [];
                 lockBoard = false;
 
-                if (matchedPairs === multiplicationPairs.length / 2) {
-                    setTimeout(showWinScreen, 500); // Son kart döndükten yarım saniye sonra bitiş ekranı
+                if (matchedPairs === activePairsCount) {
+                    setTimeout(showWinScreen, 500);
                 }
             } else {
-                // wrongSound.play();
-                // Eşleşmediyse 1 saniye sonra kartları geri kapat
                 setTimeout(() => {
                     flippedCards[0].element.classList.remove('rotate-y-180');
                     flippedCards[1].element.classList.remove('rotate-y-180');
@@ -153,8 +199,6 @@
             document.getElementById('winScreen').classList.add('flex');
         }
 
-        // Oyunu başlat
-        initGame();
     </script>
 </body>
 </html>
