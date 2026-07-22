@@ -85,21 +85,6 @@
         let matchedPairs = 0;
         let lockBoard = false;
         let activePairsCount = 6; 
-
-        // Dropdown değiştiğinde sınıfı güncelle
-        document.getElementById('gradeSelect').addEventListener('change', (e) => {
-            currentGrade = e.target.value;
-            
-            // Mod Seçici Butonunu Kontrol Et
-            const modeSwitcher = document.getElementById('gameModeSwitcher');
-            if (currentGrade === "3") {
-                modeSwitcher.classList.remove('hidden'); // Butonu göster
-            } else {
-                modeSwitcher.classList.add('hidden'); // Butonu gizle
-            }
-        
-            initGame();
-        });
         
         function showStartScreen() {
             document.getElementById('startScreen').classList.remove('hidden');
