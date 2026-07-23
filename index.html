@@ -128,7 +128,22 @@
 
         // Oyunu Başlat
         function initGame() {
-            currentQuestions = [...database[currentGrade]].sort(() => Math.random() - 0.5); // Soruları karıştır
+            // 1. Ekrandaki dropdown'da ne seçiliyse JS değişkenini ona eşitle
+            const gradeDropdown = document.getElementById('gradeSelect');
+            currentGrade = gradeDropdown.value;
+
+            // 2. Hafıza oyunu butonunu seçili sınıfa göre kontrol et
+            const modeSwitcher = document.getElementById('gameModeSwitcher');
+            if (modeSwitcher) {
+                if (currentGrade === "3") {
+                    modeSwitcher.classList.remove('hidden');
+                } else {
+                    modeSwitcher.classList.add('hidden');
+                }
+            }
+
+            // 3. Soruları ilgili sınıfa göre yükle
+            currentQuestions = [...database[currentGrade]].sort(() => Math.random() - 0.5);
             currentQuestionIndex = 0;
             score = 0;
             combo = 0;
@@ -230,9 +245,10 @@
             document.getElementById('combo').innerText = combo;
         }
 
-        // Dropdown değiştiğinde sınıfı güncelle ve butonu kontrol et
-        document.getElementById('gradeSelect').addEventListener('change', (e) => {
-            currentGrade = e.target.value;
+        // Dropdown değiştiğinde oyunu yeniden başlat
+        document.getElementById('gradeSelect').addEventListener('change', () => {
+            initGame();
+        });
             
             // 3. Sınıf seçildiğinde butonu göster, diğerlerinde gizle
             const modeSwitcher = document.getElementById('gameModeSwitcher');
