@@ -146,7 +146,6 @@
         wrongSound.volume = 0.5; // Hata sesi çocuğu korkutmasın diye biraz daha kısık olabilir
 
         // Oyunu Başlat
-// Oyunu Başlat
         function initGame() {
             const gradeDropdown = document.getElementById('gradeSelect');
             currentGrade = gradeDropdown.value;
@@ -155,7 +154,7 @@
             const memoryBtn = document.getElementById('memoryModeBtn');
             const speedBtn = document.getElementById('speedModeBtn');
 
-            if (modeSwitcher) {
+            if (modeSwitcher && memoryBtn && speedBtn) {
                 // Hepsini gizle
                 modeSwitcher.classList.add('hidden');
                 memoryBtn.classList.add('hidden');
