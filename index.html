@@ -141,30 +141,30 @@
         wrongSound.volume = 0.5; // Hata sesi çocuğu korkutmasın diye biraz daha kısık olabilir
 
         // Oyunu Başlat
+// Oyunu Başlat
         function initGame() {
-            // 1. Ekrandaki dropdown'da ne seçiliyse JS değişkenini ona eşitle
             const gradeDropdown = document.getElementById('gradeSelect');
             currentGrade = gradeDropdown.value;
 
-            // 2. Hafıza oyunu butonunu seçili sınıfa göre kontrol et
             const modeSwitcher = document.getElementById('gameModeSwitcher');
             const memoryBtn = document.getElementById('memoryModeBtn');
             const speedBtn = document.getElementById('speedModeBtn');
+
             if (modeSwitcher) {
                 // Hepsini gizle
                 modeSwitcher.classList.add('hidden');
-                //memoryBtn.classList.add('hidden');
+                memoryBtn.classList.add('hidden');
                 speedBtn.classList.add('hidden');
+
                 if (currentGrade === "3") {
                     modeSwitcher.classList.remove('hidden');
                     memoryBtn.classList.remove('hidden');
-                } else {
-                    modeSwitcher.classList.add('hidden');
+                } else if (currentGrade === "5") {
+                    modeSwitcher.classList.remove('hidden');
                     speedBtn.classList.remove('hidden');
                 }
             }
 
-            // 3. Soruları ilgili sınıfa göre yükle
             currentQuestions = [...database[currentGrade]].sort(() => Math.random() - 0.5);
             currentQuestionIndex = 0;
             score = 0;
