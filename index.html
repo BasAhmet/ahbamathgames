@@ -16,7 +16,7 @@
             <option value="2">2. Sınıf</option>
             <option value="3">3. Sınıf</option>
             <option value="4" disabled>4. Sınıf (Yakında)</option>
-            <option value="5" disabled>5. Sınıf (Yakında)</option>
+            <option value="5">5. Sınıf</option>
         </select>
     </header>
 
@@ -96,6 +96,15 @@
                 { q: "? x 3 = 27", a: 9, options: [7, 8, 9, 10], type: "missing" },
                 { q: "40 ÷ ? = 5", a: 8, options: [6, 7, 8, 9], type: "missing" },
                 { q: "8 x 8", a: 64, options: [56, 60, 64, 72], type: "text" }
+            ],
+            "5": [
+                { q: "3² + 4", a: 13, options: [10, 11, 13, 15], type: "text" },
+                { q: "1/2 + 1/4", a: "3/4", options: ["2/4", "3/4", "1/6", "3/6"], type: "text" },
+                { q: "0.5 + 0.2", a: "0.7", options: ["0.6", "0.7", "0.8", "0.9"], type: "text" },
+                { q: "80'in %25'i", a: 20, options: [15, 20, 25, 40], type: "text" },
+                { q: "120 ÷ 3 - 10", a: 30, options: [20, 30, 40, 50], type: "text" },
+                { q: "5³", a: 125, options: [15, 25, 125, 150], type: "text" },
+                { q: "7/10 - 2/10", a: "1/2", options: ["5/10", "1/2", "3/10", "4/10"], type: "text" }
             ]
         };
 
