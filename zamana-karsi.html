@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zamana Karşı Yarış - 5. Sınıf</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-amber-50 min-h-screen flex flex-col items-center py-6 font-sans text-gray-800 select-none">
+
+    <!-- Ana Sayfaya Dön -->
+    <div class="w-full flex justify-start px-4 mb-4 max-w-2xl mx-auto">
+        <a href="index.html" class="bg-white border-2 border-amber-200 hover:bg-amber-100 text-amber-700 font-bold py-2 px-4 rounded-xl shadow-sm transition-transform active:scale-95 flex items-center gap-2">
+            🏠 Ana Sayfaya Dön
+        </a>
+    </div>
+
+    <header class="mb-6 text-center px-4">
+        <h1 class="text-4xl font-black text-amber-600 mb-1">⚡ Zamana Karşı Yarış</h1>
+        <p class="text-sm font-bold text-gray-500">60 Saniyede En Yüksek Skoru Yap!</p>
+    </header>
+
+    <main class="flex-1 w-full max-w-2xl px-4 flex flex-col items-center">
+        
+        <!-- Başlangıç Ekranı -->
+        <div id="startScreen" class="bg-white p-8 rounded-3xl shadow-xl w-full text-center flex flex-col items-center">
+            <div class="text-6xl mb-4">⏱️</div>
+            <h2 class="text-2xl font-black text-gray-700 mb-2">Hazır mısın?</h2>
+            <p class="text-gray-500 font-medium mb-6">Doğru cevaplar sana ekstra süre kazandırır, yanlış cevaplar ise sürenden çalar!</p>
+            
+            <div class="bg-amber-100 text-amber-800 p-4 rounded-2xl font-bold mb-6 w-full">
+                🏆 En Yüksek Skorun: <span id="highScoreText" class="text-2xl font-black">0</span>
+            </div>
+
+            <button onclick="startSpeedRun()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-5 rounded-2xl shadow-lg transition-transform active:scale-95 text-2xl">
+                🚀 Macerayı Başlat!
+            </button>
+        </div>
+
+        <!-- Oyun Ekranı (Başlangıçta Gizli) -->
+        <div id="gameArea" class="hidden w-full flex-col items-center">
+            
+            <!-- Sayaç ve Puan Çubuğu -->
+            <div class="grid grid-cols-3 gap-2 w-full mb-6">
+                <div class="bg-white p-3 rounded-2xl shadow-sm text-center border-2 border-amber-200">
+                    <span class="text-xs text-gray-400 font-bold block uppercase">Kalan Süre</span>
+                    <span id="timerText" class="text-3xl font-black text-red-500">60s</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm text-center border-2 border-amber-200">
+                    <span class="text-xs text-gray-400 font-bold block uppercase">Puan</span>
+                    <span id="scoreText" class="text-3xl font-black text-amber-600">0</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm text-center border-2 border-amber-200">
+                    <span class="text-xs text-gray-400 font-bold block uppercase">Seri</span>
+                    <span id="comboText" class="text-3xl font-black text-orange-500">0 🔥</span>
+                </div>
+            </div>
+
+            <!-- Soru Kartı -->
+            <div class="bg-white w-full rounded-3xl shadow-xl p-8 text-center">
+                <div id="questionText" class="text-5xl font-black text-gray-700 mb-8 min-h-[60px] flex items-center justify-center">
+                    <!-- Soru buraya gelecek -->
+                </div>
+                <div id="optionsGrid" class="grid grid-cols-2 gap-4 w-full">
+                    <!-- Şıklar buraya gelecek -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bitiş Ekranı (Başlangıçta Gizli) -->
+        <div id="endScreen" class="hidden bg-white p-8 rounded-3xl shadow-xl w-full text-center flex-col items-center">
+            <div class="text-6xl mb-4">🔔</div>
+            <h2 class="text-3xl font-black text-gray-700 mb-2">Süre Doldu!</h2>
+            
+            <div class="my-6 space-y-2">
+                <p class="text-gray-500 font-bold text-lg">Toplam Puanın: <span id="finalScore" class="text-amber-600 text-3xl font-black">0</span></p>
+                <p id="newRecordNotice" class="text-green-500 font-black text-xl hidden">🎉 YENİ REKOR!</p>
+            </div>
+
+            <button onclick="startSpeedRun()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-4 rounded-2xl shadow-lg transition-transform active:scale-95 text-xl">
+                🔄 Tekrar Dene
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        const questions5th = [
+            { q: "3² + 4", a: 13, options: [10, 11, 13, 15] },
+            { q: "1/2 + 1/4", a: "3/4", options: ["2/4", "3/4", "1/6", "3/6"] },
+            { q: "0.5 + 0.2", a: "0.7", options: ["0.6", "0.7", "0.8", "0.9"] },
+            { q: "80'in %25'i", a: 20, options: [15, 20, 25, 40] },
+            { q: "120 ÷ 3 - 10", a: 30, options: [20, 30, 40, 50] },
+            { q: "5³", a: 125, options: [15, 25, 125, 150] },
+            { q: "7/10 - 2/10", a: "1/2", options: ["5/10", "1/2", "3/10", "4/10"] },
+            { q: "2⁴", a: 16, options: [8, 12, 16, 32] },
+            { q: "100'ün %10'u", a: 10, options: [5, 10, 20, 50] },
+            { q: "15 + 5 x 2", a: 25, options: [25, 40, 35, 20] }
+        ];
+
+        const correctSound = new Audio('sounds/correct.mp3');
+        const wrongSound = new Audio('sounds/wrong.mp3');
+
+        let score = 0;
+        let combo = 0;
+        let timeLeft = 60;
+        let timer = null;
+        let currentQ = null;
+
+        // Yüksek skoru yükle
+        let highScore = localStorage.getItem('speedRunHighScore') || 0;
+        document.getElementById('highScoreText').innerText = highScore;
+
+        function startSpeedRun() {
+            score = 0;
+            combo = 0;
+            timeLeft = 60;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('flex');
+            document.getElementById('gameArea').classList.remove('hidden');
+            document.getElementById('gameArea').classList.add('flex');
+
+            updateStats();
+            nextQuestion();
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerText').innerText = `${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            currentQ = questions5th[Math.floor(Math.random() * questions5th.length)];
+            document.getElementById('questionText').innerText = `${currentQ.q} = ?`;
+
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+
+            const shuffledOptions = [...currentQ.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.className = "bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-3xl py-5 rounded-2xl transition-transform active:scale-95 shadow-sm";
+                btn.onclick = () => handleAnswer(opt);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selected) {
+            if (selected === currentQ.a) {
+                correctSound.currentTime = 0;
+                correctSound.play();
+                combo++;
+                score += 100 * combo;
+                timeLeft += 2; // Doğru cevaba +2s bonus
+            } else {
+                wrongSound.currentTime = 0;
+                wrongSound.play();
+                combo = 0;
+                timeLeft = Math.max(0, timeLeft - 3); // Yanlış cevaba -3s ceza
+            }
+
+            updateStats();
+            if (timeLeft > 0) {
+                nextQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('scoreText').innerText = score;
+            document.getElementById('comboText').innerText = `${combo} 🔥`;
+            document.getElementById('timerText').innerText = `${timeLeft}s`;
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+            document.getElementById('endScreen').classList.add('flex');
+            document.getElementById('finalScore').innerText = score;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('speedRunHighScore', highScore);
+                document.getElementById('highScoreText').innerText = highScore;
+                document.getElementById('newRecordNotice').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecordNotice').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
