@@ -1,4 +1,30 @@
-    <main class="flex-1 w-full max-w-4xl px-4 flex flex-col items-center">
+<!DOCTYPE html>
+<html lang="tr"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çarpım Tablosu Hafıza Oyunu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .perspective { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; transition: transform 0.5s; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .backface-hidden { backface-visibility: hidden; }
+    </style>
+</head>
+<body class="bg-sky-100 min-h-screen flex flex-col items-center py-10 font-sans text-gray-800 select-none">
+    <!-- Ana Sayfaya Dön Butonu -->
+    <div class="w-full flex justify-start px-4 mt-4 max-w-4xl mx-auto">
+        <a href="index.html" class="bg-white border-2 border-sky-200 hover:bg-sky-50 text-sky-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-transform active:scale-95 flex items-center gap-2">
+            🏠 Ana Sayfaya Dön
+        </a>
+    </div>
+
+    <header class="mb-8 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-black text-sky-600 mb-2">Hafıza Kartları</h1>
+        <p class="text-lg font-bold text-gray-500">Eşleri Bul, Çarpım Tablosunu Fethet!</p>
+    </header>
+<main class="flex-1 w-full max-w-4xl px-4 flex flex-col items-center">
         
         <!-- Başlangıç Ekranı -->
         <div id="startScreen" class="flex flex-col items-center mt-4 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
