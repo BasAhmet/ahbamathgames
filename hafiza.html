@@ -1,34 +1,7 @@
-<!DOCTYPE html>
-<html lang="tr"> 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Çarpım Tablosu Hafıza Oyunu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .perspective { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; transition: transform 0.5s; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .backface-hidden { backface-visibility: hidden; }
-    </style>
-</head>
-<body class="bg-sky-100 min-h-screen flex flex-col items-center py-10 font-sans text-gray-800 select-none">
-    <!-- Ana Sayfaya Dön Butonu -->
-    <div class="w-full flex justify-start px-4 mt-4 max-w-4xl mx-auto">
-        <a href="index.html" class="bg-white border-2 border-sky-200 hover:bg-sky-50 text-sky-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-transform active:scale-95 flex items-center gap-2">
-            🏠 Ana Sayfaya Dön
-        </a>
-    </div>
-
-    <header class="mb-8 text-center px-4">
-        <h1 class="text-4xl md:text-5xl font-black text-sky-600 mb-2">Hafıza Kartları</h1>
-        <p class="text-lg font-bold text-gray-500">Eşleri Bul, Çarpım Tablosunu Fethet!</p>
-    </header>
-
     <main class="flex-1 w-full max-w-4xl px-4 flex flex-col items-center">
         
-        <!-- Başlangıç Ekranı (Seviye Seçimi) -->
-        <div id="startScreen" class="flex flex-col items-center mt-12 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
+        <!-- Başlangıç Ekranı -->
+        <div id="startScreen" class="flex flex-col items-center mt-4 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
             <h2 class="text-2xl font-black text-gray-700 mb-8">Zorluk Seviyesi Seç</h2>
             <div class="flex flex-col gap-4 w-full">
                 <button onclick="startGame(6)" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-5 rounded-2xl shadow-lg transition-transform active:scale-95 text-2xl flex items-center justify-center gap-2">
@@ -40,31 +13,56 @@
             </div>
         </div>
 
-        <!-- Oyun Izgarası (Başlangıçta Gizli) -->
-        <div id="memoryGrid" class="hidden gap-4 w-full perspective">
+        <!-- Sayaç Ekranı (Oyun İçi) -->
+        <div id="gameStats" class="hidden w-full flex justify-center mb-4">
+            <div class="bg-white px-6 py-2 rounded-2xl shadow-sm text-sky-600 font-black text-2xl border-2 border-sky-200 flex items-center gap-2">
+                ⏱️ <span id="timeDisplay">00:00</span>
+            </div>
+        </div>
+
+        <!-- Oyun Izgarası -->
+        <div id="memoryGrid" class="hidden gap-4 w-full perspective mb-8">
             <!-- JS ile kartlar buraya basılacak -->
         </div>
 
-        <!-- Oyun Sonu Ekranı (Başlangıçta Gizli) -->
-        <div id="winScreen" class="hidden flex-col items-center mt-12 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
-            <div class="text-6xl mb-4">🏆</div>
-            <h2 class="text-3xl font-black text-green-500 mb-6">Tebrikler! Hepsini Buldun!</h2>
+        <!-- Oyun Sonu ve Skorboard Ekranı -->
+        <div id="winScreen" class="hidden flex-col items-center mt-4 bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
+            <div class="text-6xl mb-2">🏆</div>
+            <h2 class="text-3xl font-black text-green-500 mb-2">Tebrikler!</h2>
+            <p class="text-lg font-bold text-gray-600 mb-6">Oyunu <span id="finalTime" class="text-sky-600 font-black text-2xl mx-1">00:00</span> sürede bitirdin!</p>
             
-            <button onclick="showStartScreen()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 text-xl">
-                🔄 Seviye Seçimine Dön
+            <!-- Skor Kayıt Alanı -->
+            <div id="scoreInputArea" class="w-full flex flex-col gap-3 mb-6 bg-sky-50 p-4 rounded-2xl border border-sky-100">
+                <p class="text-sm font-bold text-sky-700">Skorboard'a Adını Yaz</p>
+                <input type="text" id="playerName" placeholder="Adın veya Lakabın..." class="w-full border-2 border-sky-200 rounded-xl p-3 font-bold text-center outline-none focus:border-sky-500 transition-colors" maxlength="15">
+                <button onclick="saveScore()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-md transition-transform active:scale-95 text-lg">
+                    💾 Skoru Kaydet
+                </button>
+            </div>
+
+            <!-- Liderlik Tablosu -->
+            <div class="w-full bg-amber-50 rounded-2xl p-4 mb-6 border border-amber-200">
+                <h3 class="font-black text-amber-700 mb-3 flex justify-center items-center gap-2">
+                    ⭐ En İyi Dereceler <span class="text-xs bg-amber-200 px-2 py-1 rounded-lg">(<span id="leaderboardMode">6</span> Çift)</span>
+                </h3>
+                <ul id="leaderboardList" class="flex flex-col gap-2 text-sm font-bold text-gray-700">
+                    <!-- JS ile doldurulacak -->
+                </ul>
+            </div>
+            
+            <button onclick="showStartScreen()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95 text-xl flex justify-center items-center gap-2">
+                🔄 Yeni Oyun Seç
             </button>
         </div>
 
     </main>
 
     <script>
-        // Ses Dosyalarının Tanımlanması
         const correctSound = new Audio('sounds/correct.mp3');
         const wrongSound = new Audio('sounds/wrong.mp3');
         correctSound.volume = 0.8;
         wrongSound.volume = 0.5;
         
-        // Veritabanı: Toplam 12 Çift
         const allMultiplicationPairs = [
             { id: 1, text: "4 x 5", type: "q" }, { id: 1, text: "20", type: "a" },
             { id: 2, text: "6 x 7", type: "q" }, { id: 2, text: "42", type: "a" },
@@ -77,15 +75,7 @@
             { id: 9, text: "8 x 7", type: "q" }, { id: 9, text: "56", type: "a" },
             { id: 10, text: "4 x 8", type: "q" }, { id: 10, text: "32", type: "a" },
             { id: 11, text: "3 x 7", type: "q" }, { id: 11, text: "21", type: "a" },
-            { id: 12, text: "6 x 9", type: "q" }, { id: 12, text: "54", type: "a" },
-            { id: 13, text: "4 x 4", type: "q" }, { id: 13, text: "16", type: "a" },
-            { id: 14, text: "6 x 8", type: "q" }, { id: 14, text: "48", type: "a" },
-            { id: 15, text: "7 x 9", type: "q" }, { id: 15, text: "63", type: "a" },
-            { id: 16, text: "7 x 7", type: "q" }, { id: 16, text: "49", type: "a" },
-            { id: 17, text: "8 x 9", type: "q" }, { id: 17, text: "72", type: "a" },
-            { id: 18, text: "8 x 3", type: "q" }, { id: 18, text: "24", type: "a" },
-            { id: 19, text: "5 x 9", type: "q" }, { id: 19, text: "45", type: "a" },
-            { id: 20, text: "4 x 9", type: "q" }, { id: 20, text: "36", type: "a" }
+            { id: 12, text: "6 x 9", type: "q" }, { id: 12, text: "54", type: "a" }
         ];
         
         let cards = [];
@@ -94,7 +84,36 @@
         let lockBoard = false;
         let activePairsCount = 6; 
         
+        // Zamanlayıcı Değişkenleri
+        let timerInterval;
+        let secondsElapsed = 0;
+        
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            secondsElapsed = 0;
+            document.getElementById('timeDisplay').innerText = "00:00";
+            document.getElementById('gameStats').classList.remove('hidden');
+            document.getElementById('gameStats').classList.add('flex');
+            
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                document.getElementById('timeDisplay').innerText = formatTime(secondsElapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
         function showStartScreen() {
+            stopTimer();
+            document.getElementById('gameStats').classList.add('hidden');
             document.getElementById('startScreen').classList.remove('hidden');
             document.getElementById('startScreen').classList.add('flex');
             document.getElementById('memoryGrid').classList.add('hidden');
@@ -115,9 +134,9 @@
             grid.classList.remove('hidden');
             
             if (activePairsCount === 12) {
-                grid.className = "grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-4 w-full perspective";
+                grid.className = "grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-4 w-full perspective mb-8";
             } else {
-                grid.className = "grid grid-cols-3 md:grid-cols-4 gap-4 w-full perspective";
+                grid.className = "grid grid-cols-3 md:grid-cols-4 gap-4 w-full perspective mb-8";
             }
             
             flippedCards = [];
@@ -133,7 +152,7 @@
             const selectedGroups = pairGroups.slice(0, activePairsCount);
             cards = selectedGroups.flat().sort(() => Math.random() - 0.5);
         
-            cards.forEach((card, index) => {
+            cards.forEach((card) => {
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = "relative w-full aspect-[4/3] cursor-pointer transform-style-3d group";
                 cardWrapper.onclick = () => flipCard(cardWrapper, card);
@@ -155,6 +174,8 @@
                 
                 cardWrapper.dataset.id = card.id;
             });
+
+            startTimer(); // Oyunu kurduktan sonra sayacı başlat
         }
         
         function flipCard(cardElement, cardData) {
@@ -174,7 +195,6 @@
             let isMatch = flippedCards[0].id === flippedCards[1].id;
         
             if (isMatch) {
-                // Eşleşme başarılı sesi
                 correctSound.currentTime = 0;
                 correctSound.play();
         
@@ -189,11 +209,9 @@
                 lockBoard = false;
         
                 if (matchedPairs === activePairsCount) {
-                    // Son kart eşleştiğinde de ufak bir kutlama hissi verir
                     setTimeout(showWinScreen, 500);
                 }
             } else {
-                // Eşleşme başarısız sesi
                 wrongSound.currentTime = 0;
                 wrongSound.play();
         
@@ -207,11 +225,85 @@
         }
         
         function showWinScreen() {
+            stopTimer(); // Sayacı durdur
+            document.getElementById('gameStats').classList.add('hidden');
             document.getElementById('memoryGrid').classList.add('hidden');
+            
             document.getElementById('winScreen').classList.remove('hidden');
             document.getElementById('winScreen').classList.add('flex');
+            
+            // Kazanma ekranına bitiş süresini yazdır
+            document.getElementById('finalTime').innerText = formatTime(secondsElapsed);
+            
+            // Kayıt alanını sıfırla ve göster
+            document.getElementById('scoreInputArea').classList.remove('hidden');
+            document.getElementById('playerName').value = '';
+            
+            // Liderlik tablosu başlığını ayarla ve listeyi yükle
+            document.getElementById('leaderboardMode').innerText = activePairsCount;
+            loadLeaderboard();
         }
-        
+
+        // --- SKORBOARD YEREL VERİTABANI İŞLEMLERİ ---
+        function saveScore() {
+            const nameInput = document.getElementById('playerName').value.trim();
+            if(!nameInput) {
+                alert("Lütfen skorunu kaydetmek için bir isim yaz!");
+                return;
+            }
+            
+            // Zorluk seviyesine göre (6 veya 12) ayrı anahtar kelime oluştur
+            const storageKey = `hafizaSkorlari_${activePairsCount}`;
+            let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+            
+            // Yeni skoru ekle
+            scores.push({ 
+                name: nameInput, 
+                time: secondsElapsed 
+            });
+            
+            // Süreye göre küçükten büyüğe (en hızlıdan yavaşa) sırala
+            scores.sort((a, b) => a.time - b.time);
+            
+            // Sadece en iyi 5 skoru tut
+            scores = scores.slice(0, 5);
+            
+            // Tarayıcı hafızasına kaydet
+            localStorage.setItem(storageKey, JSON.stringify(scores));
+            
+            // Kayıt formunu gizle ve tabloyu güncelle
+            document.getElementById('scoreInputArea').classList.add('hidden');
+            loadLeaderboard();
+        }
+
+        function loadLeaderboard() {
+            const storageKey = `hafizaSkorlari_${activePairsCount}`;
+            const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+            
+            if(scores.length === 0) {
+                list.innerHTML = '<li class="text-center text-amber-600 font-medium py-2">Henüz rekor kıran olmadı. İlk sen ol!</li>';
+                return;
+            }
+            
+            scores.forEach((score, index) => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-amber-100";
+                
+                let rankIcon = "🏅";
+                if(index === 0) rankIcon = "🥇";
+                else if(index === 1) rankIcon = "🥈";
+                else if(index === 2) rankIcon = "🥉";
+                
+                li.innerHTML = `
+                    <span class="flex items-center gap-2">
+                        <span class="text-xl">${rankIcon}</span> 
+                        <span class="text-gray-800">${score.name}</span>
+                    </span> 
+                    <span class="text-amber-600 font-black">${formatTime(score.time)}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
     </script>
-</body>
-</html>
